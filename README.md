@@ -2,6 +2,4 @@
 
 ## Aplicativo feito em Flutter e Dart com a Api do Movies TMDB
 
-<video autoplay muted loop>
-  <source src="./lib/assets/20240731171311.mp4">  
-</video>
+https://github.com/user-attachments/assets/6910bf63-5d88-4e7d-b72f-2ff801159446
