@@ -1,5 +1,6 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:movies_api/views/carts.dart';
 import '../urls/url.dart';
 import '../consts/styles.dart';
 
@@ -12,6 +13,8 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final Api _getComing = Api();
+  final CarouselController _carouselController1 = CarouselController();
+  final CarouselController _carouselController2 = CarouselController();
 
   @override
   Widget build(BuildContext context) {
@@ -20,10 +23,6 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         backgroundColor: Colors.black12,
         foregroundColor: Colors.white,
-        leading: IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.menu),
-        ),
         title: const Text("Show Spot"),
         centerTitle: true,
       ),
@@ -31,11 +30,9 @@ class _HomeState extends State<Home> {
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                "Upcoming",
-               style: style()
-              ),
+              Text("Upcoming", style: style()),
               FutureBuilder(
                 future: _getComing.getUpcomingMovies(),
                 builder: (context, snapshot) {
@@ -45,67 +42,113 @@ class _HomeState extends State<Home> {
                     );
                   }
                   final movie = snapshot.data!;
-
-                  return CarouselSlider.builder(
-                      itemCount: movie.length,
-                      itemBuilder: (context, index, movieIndex) {
-                        final movies = movie[index];
-                        return Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20)),
-                          child: Image.network(
-                              "https://image.tmdb.org/t/p/original/${movies.backdropPath}"),
-                        );
-                      },
-                      options: CarouselOptions(
-                          autoPlay: true,
-                          enlargeCenterPage: true,
-                          autoPlayInterval: const Duration(seconds: 2)));
+                  return Column(
+                    children: [
+                      CarouselSlider.builder(
+                          itemCount: movie.length,
+                          itemBuilder: (context, index, movieIndex) {
+                            final movies = movie[index];
+                            return Container(
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20)),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(15),
+                                child: Image.network(
+                                    "https://image.tmdb.org/t/p/original/${movies.backdropPath}"),
+                              ),
+                            );
+                          },
+                          options: CarouselOptions(
+                              autoPlay: true,
+                              enlargeCenterPage: true,
+                              autoPlayInterval: const Duration(seconds: 2))),
+                    ],
+                  );
                 },
               ),
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.only(top: 25),
                 child: Text(
                   "Popular",
                   style: style(),
                 ),
               ),
-               FutureBuilder(
-                  future: _getComing.getPopularMovies(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    }
-                    final movies = snapshot.data!;
-                    return CarouselSlider.builder(itemCount: movies.length, itemBuilder: (context, index, realIndex) {
-                      final movie = movies[index];
-                      return Container(
-                          width: double.infinity,
-                          margin: const EdgeInsets.symmetric(horizontal: 20),
-                          decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20)),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(15),
-                            child: Image.network(
-                              "https://image.tmdb.org/t/p/original/${movie.PosterPath}",
-                              fit: BoxFit.fill,
-                            ),
+              FutureBuilder(
+                future: _getComing.getPopularMovies(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                  final movies = snapshot.data!;
+                  return Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back_ios_new_sharp),
+                            onPressed: () {
+                              _carouselController1.previousPage();
+                            },
                           ),
-                        );
-                    }, options: CarouselOptions(
-                      enlargeCenterPage: true,
-                      aspectRatio: 1.4,
-                      enableInfiniteScroll: true,
-                      initialPage: 0,
-                    ));
-                  },
-                ),
+                          IconButton(
+                            icon: const Icon(Icons.arrow_forward_ios_sharp),
+                            onPressed: () {
+                              _carouselController1.nextPage();
+                            },
+                          ),
+                        ],
+                      ),
+                      CarouselSlider.builder(
+                          carouselController: _carouselController1,
+                          itemCount: movies.length,
+                          itemBuilder: (context, index, realIndex) {
+                            final movie = movies[index];
+                            return Container(
+                              width: double.infinity,
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 20),
+                              decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20)),
+                              child: GestureDetector(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(15),
+                                  child: Image.network(
+                                    "https://image.tmdb.org/t/p/original/${movie.PosterPath}",
+                                    fit: BoxFit.fill,
+                                  ),
+                                ),
+                                onTap: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => Cart(
+                                            nome: movie.nome,
+                                            poster: movie.PosterPath,
+                                            views: movie.visualizacoes,
+                                        pontos: movie.pontuacao,
+                                        data: movie.data),
+                                      ));
+                                },
+                              ),
+                            );
+                          },
+                          options: CarouselOptions(
+                            enlargeCenterPage: true,
+                            aspectRatio: 1.4,
+                            enableInfiniteScroll: true,
+                            initialPage: 0,
+                          )),
+                    ],
+                  );
+                },
+              ),
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.only(top: 25),
                 child: Text(
                   "Top Rated",
                   style: style(),
@@ -120,28 +163,69 @@ class _HomeState extends State<Home> {
                     );
                   }
                   final movies = snapshot.data!;
-                  return CarouselSlider.builder(itemCount: movies.length, itemBuilder: (context, index, realIndex) {
-                    final movie = movies[index];
-                    return Container(
-                      width: double.infinity,
-                      margin: const EdgeInsets.symmetric(horizontal: 20),
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20)),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(15),
-                        child: Image.network(
-                          "https://image.tmdb.org/t/p/original/${movie.PosterPath}",
-                          fit: BoxFit.fill,
-                        ),
+                  return Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back_ios_sharp),
+                            onPressed: () {
+                              _carouselController2.previousPage();
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.arrow_forward_ios_sharp),
+                            onPressed: () {
+                              _carouselController2.nextPage();
+                            },
+                          ),
+                        ],
                       ),
-                    );
-                  }, options: CarouselOptions(
-                    enlargeCenterPage: true,
-                    aspectRatio: 1.4,
-                    enableInfiniteScroll: true,
-                    initialPage: 0,
-                  ));
+                      CarouselSlider.builder(
+                          carouselController: _carouselController2,
+                          itemCount: movies.length,
+                          itemBuilder: (context, index, realIndex) {
+                            final movie = movies[index];
+                            return Container(
+                              width: double.infinity,
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 20),
+                              decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20)),
+                              child: GestureDetector(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(15),
+                                  child: Image.network(
+                                    "https://image.tmdb.org/t/p/original/${movie.PosterPath}",
+                                    fit: BoxFit.fill,
+                                  ),
+                                ),
+                                onTap: (){
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => Cart(
+                                            nome: movie.nome,
+                                            poster: movie.PosterPath,
+                                            views: movie.visualizacoes,
+                                          pontos: movie.pontuacao,
+                                          data: movie.data,
+                                        ),
+                                      ));
+                                },
+                              ),
+                            );
+                          },
+                          options: CarouselOptions(
+                            enlargeCenterPage: true,
+                            aspectRatio: 1.4,
+                            enableInfiniteScroll: true,
+                            initialPage: 0,
+                          )),
+                    ],
+                  );
                 },
               ),
             ],
